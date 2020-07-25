@@ -91,8 +91,10 @@ echo -e "df count:$df_count" | tee -a $local_log
 echo -e "\n${line_sep}" | tee -a $local_log
 
 echo -e "${BLUE}Capturing /etc/fstab entries ${NC}" | tee -a $local_log
-fstab_op=$(cat /etc/fstab)
-echo -e "fstab status:$fstab_op"  | tee -a $local_log
+fstab_op=$(cat /etc/fstab | grep -v "^$")
+fstab_count=$(echo ${fstab_op}|wc -l)
+echo -e "fstab status:\n$fstab_op"  | tee -a $local_log
+echo -e "fstab entry count:$fstab_count" | tee -a $local_log
 echo -e "\n${line_sep}" | tee -a $local_log
 
 echo -e "${BLUE}Capturing pvs output ${NC}" | tee -a $local_log

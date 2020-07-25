@@ -164,8 +164,18 @@ fi
 echo -e "\n${line_sep}" | tee -a $local_log
 
 echo -e "${BLUE}Capturing /etc/fstab entries ${NC}" | tee -a $local_log
-fstab_op=$(cat /etc/fstab)
-echo -e "fstab status:$fstab_op"  | tee -a $local_log
+fstab_op=$(cat /etc/fstab | grep -v "^$")
+fstab_count=$(echo ${fstab_op}|wc -l)
+echo -e "fstab status:\n$fstab_op"  | tee -a $local_log
+echo -e "fstab entry count:$fstab_count" | tee -a $local_log
+prev_op=$(cat ${before_reboot_log} | grep -i -A${fstab_count} "fstab status"| egrep -v "fstab status|fstab entry count")
+if [ "$fstab_op" = "$prev_op" ]
+then
+        fstab_status="${GREEN}Good${NC}"
+else
+        fstab_status="${RED}Mismatch${NC}"
+fi
+
 echo -e "\n${line_sep}" | tee -a $local_log
 
 echo -e "${BLUE}Capturing pvs output ${NC}" | tee -a $local_log
@@ -304,6 +314,7 @@ echo -e "${MAG}3.\t SELinux Status${NC} \t\t\t $SELinux_status" | tee -a $local_
 echo -e "${MAG}4.\t Memory Status${NC} \t\t\t\t $mem_status" | tee -a $local_log
 echo -e "${MAG}5.\t nproc count${NC} \t\t\t\t $nproc_status" | tee -a $local_log
 echo -e "${MAG}6.\t Filesystem status${NC} \t\t\t $df_status" | tee -a $local_log
+echo -e "${MAG}7.\t /etc/fstab status${NC} \t\t\t $fstab_status" | tee -a $local_log
 
 echo -e "\n${line_sep}" | tee -a $local_log
 
