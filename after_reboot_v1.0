@@ -127,6 +127,13 @@ echo -e "\n${line_sep}" | tee -a $local_log
 echo -e "${BLUE}Capturing processing unit count ${NC}" | tee -a $local_log
 nproc_op=$(/usr/bin/nproc)
 echo -e "nproc status:${nproc_op}"  | tee -a $local_log
+if [ "$nproc_op" = $(cat ${before_reboot_log} | grep -i "nproc status" | awk -F ":" '{print $2}') ]
+then
+        nproc_status="${GREEN}Good${NC}"
+else
+        nproc_status="${RED}Mismatch${NC}"
+fi
+
 echo -e "\n${line_sep}" | tee -a $local_log
 
 #FILESYSTEM INFORMATION
@@ -137,7 +144,9 @@ echo -e "${line_sep}" | tee -a $local_log
 
 echo -e "${BLUE}Capturing mount points ${NC}" | tee -a $local_log
 df_op=$(/usr/bin/df -h)
+df_count=$(/usr/bin/df -h | grep -v "Size" | wc -l)
 echo -e "df status:$df_op" | tee -a $local_log
+echo -e "df count:$df_count" | tee -a $local_log
 echo -e "\n${line_sep}" | tee -a $local_log
 
 echo -e "${BLUE}Capturing /etc/fstab entries ${NC}" | tee -a $local_log
