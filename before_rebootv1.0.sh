@@ -84,9 +84,9 @@ echo -e "${line_sep}" | tee -a $local_log
 
 
 echo -e "${BLUE}Capturing mount points ${NC}" | tee -a $local_log
-df_op=$(/usr/bin/df -h)
+df_op=$(/usr/bin/df -h | grep -v "Size")
 df_count=$(/usr/bin/df -h | grep -v "Size" | wc -l)
-echo -e "df status:$df_op" | tee -a $local_log
+echo -e "df status:\n$df_op" | tee -a $local_log
 echo -e "df count:$df_count" | tee -a $local_log
 echo -e "\n${line_sep}" | tee -a $local_log
 

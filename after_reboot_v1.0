@@ -6,6 +6,7 @@ RED="\033[1;31m"
 GREEN="\033[1;32m"
 BLUE="\033[1;34m"
 MAG="\033[1;35m"
+BROWN="\033[1;33m"
 NC="\033[0m" #No Color
 
 #Variable Declaration
@@ -78,7 +79,8 @@ if [ "$release_ver" = "6" ]
 then
         iptable_op=$(/usr/sbin/service iptables status)
         echo -e "IPtable status:$iptable_op" | tee -a $local_log
-        if [ "$iptable_op" = $(cat ${before_reboot_log} | grep -i "iptable_op" | awk -F ":" '{print $2}') ]
+	prev_op=$(cat ${before_reboot_log} | grep -i "iptable_op" | awk -F ":" '{print $2}')
+        if [ "$iptable_op" = "$prev_op" ]
         then
                 iptable_status="${GREEN}Good${NC}"
         else
@@ -89,7 +91,8 @@ then
 else
         firewall_op=$(/usr/bin/systemctl status firewalld)
         echo -e "Firewall status:$firewall_op" | tee -a $local_log
-        if [ "$firewall_op" = $(cat ${before_reboot_log} | grep -i "firewall_op" | awk -F ":" '{print $2}') ]
+	prev_op=$(cat ${before_reboot_log} | grep -i "firewall_op" | awk -F ":" '{print $2}')
+        if [ "$firewall_op" = "$prev_op" ]
         then
                 firewall_status="${GREEN}Good${NC}"
         else
@@ -101,7 +104,8 @@ fi
 echo -e "${BLUE}SELINUX status ${NC}" | tee -a $local_log
 selinux_op=$(/usr/sbin/sestatus)
 echo -e "$selinux_op" | tee -a $local_log
-if [ "$selinux_op" = $(cat ${before_reboot_log} | grep -i "SELinux status:" ) ]
+prev_op=$(cat ${before_reboot_log} | grep -i "SELinux status:" )
+if [ "$selinux_op" = "$prev_op" ]
 then
         SELinux_status="${GREEN}Good${NC}"
 else
@@ -143,10 +147,20 @@ echo -e "${line_sep}" | tee -a $local_log
 
 
 echo -e "${BLUE}Capturing mount points ${NC}" | tee -a $local_log
-df_op=$(/usr/bin/df -h)
+df_op=$(/usr/bin/df -h | grep -v "Size")
 df_count=$(/usr/bin/df -h | grep -v "Size" | wc -l)
-echo -e "df status:$df_op" | tee -a $local_log
+echo -e "df status:\n$df_op" | tee -a $local_log
 echo -e "df count:$df_count" | tee -a $local_log
+prev_op=$(cat ${before_reboot_log} | grep -i -A${df_count} "df status"| grep -v "df status")
+if [ "$df_op" = "$prev_op" ]
+then
+	echo $df_op
+        df_status="${GREEN}Good${NC}"
+else
+	echo $df_op
+	df_status="${RED}Mismatch${NC}"
+fi
+
 echo -e "\n${line_sep}" | tee -a $local_log
 
 echo -e "${BLUE}Capturing /etc/fstab entries ${NC}" | tee -a $local_log
@@ -288,6 +302,8 @@ echo -e "${MAG}1.\t Kernel Version${NC} \t\t\t $kernel_status" | tee -a $local_l
 echo -e "${MAG}2.\t IPtable/Firewalld${NC} \t\t\t $(if [ "${release_ver}" = "6" ]; then echo ${iptable_status};else echo ${firewall_status}; fi)" | tee -a $local_log
 echo -e "${MAG}3.\t SELinux Status${NC} \t\t\t $SELinux_status" | tee -a $local_log
 echo -e "${MAG}4.\t Memory Status${NC} \t\t\t\t $mem_status" | tee -a $local_log
+echo -e "${MAG}5.\t nproc count${NC} \t\t\t\t $nproc_status" | tee -a $local_log
+echo -e "${MAG}6.\t Filesystem status${NC} \t\t\t $df_status" | tee -a $local_log
 
 echo -e "\n${line_sep}" | tee -a $local_log
 
