@@ -53,7 +53,9 @@ then
         echo -e "\n${line_sep}" | tee -a $local_log;
 else
         firewall_op=$(/usr/bin/systemctl status firewalld)
+	firewall_state=$(/usr/bin/systemctl status firewalld | awk '/Active:/ {print $2 $3}')
         echo -e "Firewall status:$firewall_op" 1>> $local_log
+	echo -e "Firewall state:$firewall_state" 1>> $local_log
         echo -e "\n${line_sep}" | tee -a $local_log;
 fi
 
