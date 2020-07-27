@@ -65,11 +65,12 @@ echo -e "\n${line_sep}" | tee -a $local_log;
 echo -e "${BLUE}Kernel version ${NC}" | tee -a $local_log
 kernel_ver=$(uname -r)
 echo -e "kernel_ver:$kernel_ver " 1>> $local_log
-if [ "$kernel_ver" = $(cat ${before_reboot_log} | grep -i "kernel_ver" | awk -F ":" '{print $2}') ]
+prev_op=$(cat ${before_reboot_log} | grep -i "kernel_ver" | awk -F ":" '{print $2}')
+if [ "$kernel_ver" = "$prev_op" ]
 then
-        kernel_status="${GREEN}Good${NC}"
+        kernel_status="${GREEN}Good.$kernel_ver${NC}"
 else
-        kernel_status="${RED}Mismatch${NC}"
+        kernel_status="${RED}Mismatch.Current kernel:$kernel_ver. Prev Kernel: $prev_op${NC}"
 fi
 
 echo -e "\n${line_sep}" | tee -a $local_log
